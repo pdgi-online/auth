@@ -1,8 +1,9 @@
 <?php
-namespace PDGIOnline\PDGIAuthClient\Http\Controllers;
+
+namespace PDGIOnline\Auth\Http\Controllers;
 
 use Illuminate\Http\Request;
-use PDGIOnline\PDGIAuthClient\Facades\PDGIAuth;
+use PDGIOnline\Auth\Facades\PDGIAuth;
 use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
@@ -11,7 +12,7 @@ class AuthController extends Controller
     {
         $state = bin2hex(random_bytes(16));
         $request->session()->put('oauth_state', $state);
-        
+
         return redirect()->away(
             PDGIAuth::getAuthorizationUrl($state)
         );
@@ -26,11 +27,9 @@ class AuthController extends Controller
 
         try {
             // Complete auth flow (gets tokens, fetches user, logs in)
-            $user = PDGIAuth::completeAuthFlow($request->code);
-            
-            return redirect()->intended('/dashboard')
-                ->with('success', 'Logged in successfully!');
-                
+            PDGIAuth::completeAuthFlow($request->code);
+
+            return redirect()->intended(route('dashboard'));
         } catch (\Exception $e) {
             return redirect()->route('login')
                 ->with('error', 'Authentication failed: ' . $e->getMessage());

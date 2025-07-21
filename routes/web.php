@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use PDGIOnline\PDGIAuthClient\Http\Controllers\AuthController;
+use PDGIOnline\Auth\Http\Controllers\AuthController;
 
 Route::group(['middleware' => ['web']], function () {
     Route::get('/auth/pdgi', [AuthController::class, 'redirect'])->name('pdgi.auth');

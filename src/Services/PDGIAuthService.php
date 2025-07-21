@@ -1,6 +1,6 @@
 <?php
 
-namespace PDGIOnline\PDGIAuthClient\Services;
+namespace PDGIOnline\Auth\Services;
 
 use GuzzleHttp\Client;
 use Illuminate\Foundation\Auth\User;
@@ -119,12 +119,14 @@ class PDGIAuthService
         $user = User::where('dentist_id', $userData['dentist_id'])->first();
 
         if (!$user) {
-            $user = User::create([
-                'dentist_id' => $userData['dentist_id'],
-                'auth_provider' => 'pdgi',
-                'name' => $userData['name'] ?? '',
-                'email' => $userData['email'],
-            ]);
+            $user = new User();
+            $user->name = $userData['name'];
+            $user->email = $userData['email'];
+            $user->auth_provider = 'pdgi';
+            $user->dentist_id = $userData['dentist_id'];
+            $user->created_at = now();
+            $user->updated_at = now();
+            $user->save();
         }
 
         return $user;

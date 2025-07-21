@@ -1,16 +1,18 @@
 <?php
-namespace PDGIOnline\PDGIAuthClient\Providers;
+
+namespace PDGIOnline\Auth\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use PDGIOnline\PDGIAuthClient\Http\Middleware\EnsurePDGIAuth;
-use PDGIOnline\PDGIAuthClient\Services\PDGIAuthService;
+use PDGIOnline\Auth\Http\Middleware\EnsurePDGIAuth;
+use PDGIOnline\Auth\Services\PDGIAuthService;
 
 class PDGIAuthServiceProvider extends ServiceProvider
 {
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../../config/pdgi-auth.php', 'pdgi-auth'
+            __DIR__ . '/../../config/pdgi-auth.php',
+            'pdgi-auth'
         );
 
         $this->app->singleton('pdgi-auth', function () {
@@ -20,11 +22,16 @@ class PDGIAuthServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        // config
         $this->publishes([
-            __DIR__.'/../../config/pdgi-auth.php' => config_path('pdgi-auth.php'),
+            __DIR__ . '/../../config/pdgi-auth.php' => config_path('pdgi-auth.php'),
         ], 'pdgi-auth-config');
 
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        // migrations
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+
+        // routes
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
 
         $this->app['router']->aliasMiddleware('pdgi.auth', EnsurePDGIAuth::class);
     }

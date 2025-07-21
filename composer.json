@@ -13,6 +13,16 @@
             "PDGIOnline\\Auth\\": "src/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PDGIOnline\\Auth\\Providers\\PDGIAuthServiceProvider"
+            ],
+            "aliases": {
+                "PDGIAuth": "PDGIOnline\\Auth\\Facades\\PDGIAuth"
+            }
+        }
+    },
     "authors": [
         {
             "name": "Afif Muhammad",

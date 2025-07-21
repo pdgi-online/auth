@@ -1,7 +1,7 @@
 <?php
 // src/Http/Middleware/EnsurePassportAuth.php
 
-namespace PDGIOnline\PDGIAuthClient\Http\Middleware;
+namespace PDGIOnline\Auth\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

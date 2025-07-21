@@ -1,6 +1,6 @@
 <?php
 
-namespace PDGIOnline\PDGIAuthClient\Facades;
+namespace PDGIOnline\Auth\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
