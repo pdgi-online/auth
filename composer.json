@@ -19,16 +19,6 @@
             "email": "afif@carigi.id"
         }
     ],
-    "extra": {
-        "laravel": {
-            "providers": [
-                "PDGIOnline\\Auth\\Providers\\PDGIAuthServiceProvider"
-            ],
-            "aliases": {
-                "PDGIAuth": "PDGIOnline\\Auth\\Facades\\PDGIAuth"
-            }
-        }
-    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
