@@ -2,9 +2,9 @@
 
 namespace PDGIOnline\Auth\Http\Controllers;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use PDGIOnline\Auth\Facades\PDGIAuth;
-use PDGIOnline\Auth\Http\Controllers\Controller;
 use Random\RandomException;
 
 class AuthController extends Controller
@@ -13,7 +13,7 @@ class AuthController extends Controller
     {
         try {
             $state = bin2hex(random_bytes(16));
-        } catch (RandomException $e) {
+        } catch (RandomException) {
             abort(500, 'Could not generate state parameter');
         }
         $request->session()->put('oauth_state', $state);
@@ -23,6 +23,9 @@ class AuthController extends Controller
         );
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function callback(Request $request)
     {
         // Validate state
@@ -30,14 +33,8 @@ class AuthController extends Controller
             abort(403, 'Invalid state parameter');
         }
 
-        try {
-            // Complete auth flow (gets tokens, fetches user, logs in)
-            PDGIAuth::completeAuthFlow($request->code);
+        PDGIAuth::completeAuthFlow($request->code);
 
-            return redirect()->intended(route('dashboard'));
-        } catch (\Exception $e) {
-            return redirect()->route('login')
-                ->with('error', 'Authentication failed: ' . $e->getMessage());
-        }
+        return redirect()->intended(route('dashboard'));
     }
 }

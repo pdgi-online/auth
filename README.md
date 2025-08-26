@@ -29,7 +29,6 @@ php artisan migrate
 ```
 PDGI_CLIENT_ID=your-client-id
 PDGI_CLIENT_SECRET=your-client-secret
-PDGI_REDIRECT_URI="${APP_URL}/auth/callback"
 ```
 
 ## Usage
