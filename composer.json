@@ -3,7 +3,7 @@
     "description": "PDGI Authorization Code Grant Client Facade",
     "type": "library",
     "require": {
-        "php": "^8.0",
+        "php": "^8.2",
         "laravel/framework": "^9.0|^10.0|^11.0|^12.0",
         "guzzlehttp/guzzle": "^7.0"
     },

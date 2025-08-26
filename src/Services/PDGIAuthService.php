@@ -3,18 +3,19 @@
 namespace PDGIOnline\Auth\Services;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 
 class PDGIAuthService
 {
-    protected $http;
-    protected $clientId;
-    protected $clientSecret;
-    protected $redirectUri;
-    protected $authUrl;
-    protected $tokenUrl;
+    protected Client $http;
+    protected string $clientId;
+    protected string $clientSecret;
+    protected string $redirectUri;
+    protected string $authUrl;
+    protected string $tokenUrl;
 
     public function __construct()
     {
@@ -44,6 +45,7 @@ class PDGIAuthService
 
     /**
      * Exchange authorization code for access token
+     * @throws GuzzleException
      */
     public function getAccessToken(string $code)
     {
@@ -62,6 +64,7 @@ class PDGIAuthService
 
     /**
      * Refresh access token
+     * @throws GuzzleException
      */
     public function refreshToken(string $refreshToken)
     {
@@ -80,7 +83,7 @@ class PDGIAuthService
     /**
      * Store tokens in cache
      */
-    public function storeTokens(array $tokens)
+    public function storeTokens(array $tokens): void
     {
         Cache::put('pdgi_access_token', $tokens['access_token'], $tokens['expires_in']);
         Cache::put('pdgi_refresh_token', $tokens['refresh_token'], now()->addDays(30));
@@ -96,6 +99,7 @@ class PDGIAuthService
 
     /**
      * Get user info from PDGI server
+     * @throws GuzzleException
      */
     public function getUserInfo(string $accessToken)
     {
@@ -134,6 +138,7 @@ class PDGIAuthService
 
     /**
      * Complete the auth flow
+     * @throws GuzzleException
      */
     public function completeAuthFlow(string $code)
     {

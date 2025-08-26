@@ -4,13 +4,18 @@ namespace PDGIOnline\Auth\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PDGIOnline\Auth\Facades\PDGIAuth;
-use App\Http\Controllers\Controller;
+use PDGIOnline\Auth\Http\Controllers\Controller;
+use Random\RandomException;
 
 class AuthController extends Controller
 {
     public function redirect(Request $request)
     {
-        $state = bin2hex(random_bytes(16));
+        try {
+            $state = bin2hex(random_bytes(16));
+        } catch (RandomException $e) {
+            abort(500, 'Could not generate state parameter');
+        }
         $request->session()->put('oauth_state', $state);
 
         return redirect()->away(

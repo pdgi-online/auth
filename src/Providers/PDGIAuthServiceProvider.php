@@ -8,7 +8,7 @@ use PDGIOnline\Auth\Services\PDGIAuthService;
 
 class PDGIAuthServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $this->mergeConfigFrom(
             __DIR__ . '/../../config/pdgi-auth.php',
@@ -20,7 +20,7 @@ class PDGIAuthServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot()
+    public function boot(): void
     {
         // config
         $this->publishes([

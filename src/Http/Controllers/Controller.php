@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace PDGIOnline\Auth\Http\Controllers;
 
 abstract class Controller
 {

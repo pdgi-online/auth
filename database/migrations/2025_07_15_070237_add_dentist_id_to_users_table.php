@@ -6,18 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('dentist_id')->nullable()->unique()->after('id');
             $table->string('auth_provider')->nullable()->after('dentist_id');
             
             // delete password column
-            $table->dropColumn('password');
+            if (Schema::hasColumn('users', 'password')) {
+                $table->dropColumn('password');
+            }
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['dentist_id', 'auth_provider']);
