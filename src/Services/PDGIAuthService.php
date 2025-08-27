@@ -2,11 +2,11 @@
 
 namespace PDGIOnline\Auth\Services;
 
+use App\Models\User;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class PDGIAuthService
 {
@@ -23,8 +23,8 @@ class PDGIAuthService
         $this->clientId = config('pdgi-auth.client.id');
         $this->clientSecret = config('pdgi-auth.client.secret');
         $this->redirectUri = config('pdgi-auth.client.redirect_uri');
-        $this->authUrl = config('pdgi-auth.client.auth_url');
-        $this->tokenUrl = config('pdgi-auth.client.token_url');
+        $this->authUrl = config('pdgi-auth.client.base_url') . '/oauth/authorize';
+        $this->tokenUrl = config('pdgi-auth.client.base_url') . '/oauth/token';
     }
 
     /**
@@ -81,20 +81,26 @@ class PDGIAuthService
     }
 
     /**
-     * Store tokens in cache
+     * Store tokens in session
      */
     public function storeTokens(array $tokens): void
     {
-        Cache::put('pdgi_access_token', $tokens['access_token'], $tokens['expires_in']);
-        Cache::put('pdgi_refresh_token', $tokens['refresh_token'], now()->addDays(30));
+        // store access token in session
+        Session::put('pdgi_access_token', $tokens['access_token']);
+        Session::put('pdgi_refresh_token', $tokens['refresh_token']);
     }
 
     /**
      * Get cached access token
      */
-    public function getCachedAccessToken()
+    public function getSessionAccessToken()
     {
-        return Cache::get('pdgi_access_token');
+        return Session::get('pdgi_access_token');
+    }
+
+    public function getSessionRefreshToken()
+    {
+        return Session::get('pdgi_refresh_token');
     }
 
     /**
@@ -103,7 +109,7 @@ class PDGIAuthService
      */
     public function getUserInfo(string $accessToken)
     {
-        $userUrl = config('pdgi-auth.client.user_url');
+        $userUrl = config('pdgi-auth.client.base_url') . '/api/user';
 
         $response = $this->http->get($userUrl, [
             'headers' => [
@@ -156,5 +162,26 @@ class PDGIAuthService
         Auth::login($user, true);
 
         return $user;
+    }
+
+    /**
+     * @throws GuzzleException
+     */
+    public function getUserMemberships()
+    {
+        $accessToken = $this->getSessionAccessToken();
+        if (!$accessToken) {
+            return null;
+        }
+
+        $response = $this->http->get(config('pdgi-auth.client.base_url') . '/api/memberships', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        $json = json_decode($response->getBody(), true);
+        return $json['data'] ?? null;
     }
 }
