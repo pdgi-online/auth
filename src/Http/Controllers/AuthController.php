@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpMultipleClassDeclarationsInspection */
 
 namespace PDGIOnline\Auth\Http\Controllers;
 
@@ -25,6 +25,7 @@ class AuthController extends Controller
 
     /**
      * @throws GuzzleException
+     * @noinspection LaravelUnknownRouteNameInspection
      */
     public function callback(Request $request)
     {

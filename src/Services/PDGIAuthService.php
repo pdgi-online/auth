@@ -1,9 +1,12 @@
-<?php
+<?php /** @noinspection PhpUndefinedNamespaceInspection */
+
+/** @noinspection PhpMultipleClassDeclarationsInspection */
 
 namespace PDGIOnline\Auth\Services;
 
 use App\Models\User;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -59,14 +62,14 @@ class PDGIAuthService
             ],
         ]);
 
-        return json_decode((string) $response->getBody(), true);
+        return json_decode((string)$response->getBody(), true);
     }
 
     /**
      * Refresh access token
      * @throws GuzzleException
      */
-    public function refreshToken(string $refreshToken)
+    protected function refreshToken(string $refreshToken)
     {
         $response = $this->http->post($this->tokenUrl, [
             'form_params' => [
@@ -77,7 +80,7 @@ class PDGIAuthService
             ],
         ]);
 
-        return json_decode((string) $response->getBody(), true);
+        return json_decode((string)$response->getBody(), true);
     }
 
     /**
@@ -98,6 +101,10 @@ class PDGIAuthService
         return Session::get('pdgi_access_token');
     }
 
+    /**
+     * Get cached refresh token
+     * @noinspection PhpUnused
+     */
     public function getSessionRefreshToken()
     {
         return Session::get('pdgi_refresh_token');
@@ -118,13 +125,13 @@ class PDGIAuthService
             ],
         ]);
 
-        return json_decode((string) $response->getBody(), true);
+        return json_decode((string)$response->getBody(), true);
     }
 
     /**
      * Find or create user from OAuth data
      */
-    public function findOrCreateUser(array $userData)
+    public function findOrCreateUser(array $userData): ?User
     {
         $user = User::where('dentist_id', $userData['dentist_id'])->first();
 
@@ -132,6 +139,7 @@ class PDGIAuthService
             $user = new User();
             $user->name = $userData['name'];
             $user->email = $userData['email'];
+            $user->avatar = $userData['avatar'] ? 'https://storage.googleapis.com/pdgi-online/certification/' . $userData['avatar'] : null;
             $user->auth_provider = 'pdgi';
             $user->dentist_id = $userData['dentist_id'];
             $user->created_at = now();
@@ -145,8 +153,9 @@ class PDGIAuthService
     /**
      * Complete the auth flow
      * @throws GuzzleException
+     * @noinspection PhpParamsInspection
      */
-    public function completeAuthFlow(string $code)
+    public function completeAuthFlow(string $code): ?User
     {
         // Get tokens
         $tokens = $this->getAccessToken($code);
@@ -166,6 +175,7 @@ class PDGIAuthService
 
     /**
      * @throws GuzzleException
+     * @noinspection PhpUnused
      */
     public function getUserMemberships()
     {
@@ -174,14 +184,33 @@ class PDGIAuthService
             return null;
         }
 
-        $response = $this->http->get(config('pdgi-auth.client.base_url') . '/api/memberships', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Accept' => 'application/json',
-            ],
-        ]);
+        $uri = config('pdgi-auth.client.base_url') . '/api/memberships';
+        try {
+            $response = $this->http->get($uri, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+        } catch (GuzzleException $e) {
+            if ($e->getCode() === 401) {
+                // Token might be expired, try to refresh
+                $refreshToken = $this->getSessionRefreshToken();
+                if ($refreshToken) {
+                    $newTokens = $this->refreshToken($refreshToken);
+                    $this->storeTokens($newTokens);
+                    // Retry the request with new access token
+                    return $this->getUserMemberships();
+                }
+                throw $e;
+            }
+            throw $e;
+        }
 
         $json = json_decode($response->getBody(), true);
-        return $json['data'] ?? null;
+        if (!$json || !isset($json['data'])) {
+            throw new BadResponseException('Invalid response from PDGI server', Request('GET', $uri ), $response);
+        }
+        return $json['data'];
     }
 }
