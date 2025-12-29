@@ -145,6 +145,26 @@ class PDGIAuthService
             $user->created_at = now();
             $user->updated_at = now();
             $user->save();
+        } else {
+            // Update user info if there are any changes
+            $updated = false;
+            if ($user->name !== $userData['name']) {
+                $user->name = $userData['name'];
+                $updated = true;
+            }
+            if ($user->email !== $userData['email']) {
+                $user->email = $userData['email'];
+                $updated = true;
+            }
+            $newAvatar = $userData['avatar'] ? 'https://storage.googleapis.com/pdgi-online/certification/' . $userData['avatar'] : null;
+            if ($user->avatar !== $newAvatar) {
+                $user->avatar = $newAvatar;
+                $updated = true;
+            }
+            if ($updated) {
+                $user->updated_at = now();
+                $user->save();
+            }
         }
 
         return $user;
